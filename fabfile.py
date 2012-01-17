@@ -19,9 +19,8 @@ def install(aegir_version='', hostname='', type='beginning'):
     set_hostname()
     install_nginx()
     install_mariadb()
-    update_php()
-    configure_daemons()
   if (type == 'end'):
+    update_php()
     configure_mariadb()
     install_drush()
     install_aegir()
@@ -133,7 +132,10 @@ def install_nginx():
   print(green('>>>> Create symbolic link for aegir vhosts'))
   sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/aegir.conf')
 
-def install_mariadb():
+  print(green('>>>> Download the LaunchDaemon to load nginx on boot'))
+  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.nginx.plist')
+
+def install_mariadb(mariadb_version=''):
   print(green('>>> Install MariaDB'))
   print(green('>>>> MariaDB is a community-developed branch of the MySQL database, the impetus being the community maintenance of its free status under GPL, as opposed to any uncertainty of MySQL license status under its current ownership by Oracle.'))
   print(green('>>>> The intent also being to maintain high fidelity with MySQL, ensuring a "drop-in" replacement capability with library binary equivalency and exacting matching with MySQL APIs and commands. It includes the XtraDB storage engine as a replacement for InnoDB.'))
@@ -145,7 +147,16 @@ def install_mariadb():
 
   print(green('>>>> Then mysql_install_db'))
   sudo('mysql_install_db')
-  print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
+  #print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
+
+  if (mariadb_version == ''):
+    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
+
+  print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
+  sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
+
+  print(yellow('Restart your computer to enable the services Yes you really need to do this now, or the next step will not work'))
+  print(red('After restart, you can continue the installation by running: fab -H [hostname] %s' % env.arguments))
 
 def update_php(php_version=''):
   print(green('>>> Update php'))
@@ -197,26 +208,10 @@ def update_php(php_version=''):
   # TODO: test this replacement
   php_config = '/usr/local/etc/php.ini'
   print(yellow('>>>> Set php memory_limit to 256M'))
-  sudo("sed -i.bak -E -e 's/(memory_limit = ).*/\\256M/g' %s" % php_config)
-
-def configure_daemons(mariadb_version=''):
-  print(green('>>> Configure Service Launch Daemons'))
-  print(green('>>>> This is so everything runs automatically on startup'))
-
-  print(green('>>>> Download the LaunchDaemon to load nginx on boot'))
-  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.nginx.plist')
+  sudo("sed -i.bak -E -e 's/(memory_limit = ).*/\\1256M/g' %s" % php_config)
 
   print(green('>>>> Download LaunchDaemon for php-fpm'))
   sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/php-fpm.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
-
-  if (mariadb_version == ''):
-    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
-
-  print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
-  sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
-
-  print(yellow('Restart your computer to enable the services Yes you really need to do this now, or the next step will not work'))
-  print(red('After restart, you can continue the installation by running: fab -H [hostname] %s' % env.arguments))
 
 def configure_mariadb(mariadb_version=''):
   print(green('>>> Answer the prompts as follows, replace [password] with a password of your own chosing'))
