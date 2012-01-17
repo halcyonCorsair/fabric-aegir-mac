@@ -8,22 +8,23 @@ time = time.strftime('%Y%m%d-%H%M')
 
 # TODO: fabric bug: osx uses -E instead of -r, this means sed(), comment(), and uncomment() won't work properly
 # TODO: Get the aegir, drush, mariadb, and php versions in some clever way (but override if needed?)
+# TODO: perl inline replacement: perl -p -i.bak -e "s#a#b#" filename
 
-def install(aegir_version, php_version, hostname = '', type='beginning'):
-  env.arguments = "%s, %s, hostname = ''" % (aegir_version, php_version)
+def install(aegir_version='', hostname='', type='beginning'):
+  env.arguments = "%s, hostname = '%s'" % (aegir_version, hostname)
+  env.hostname = hostname
   if (type == 'beginning'):
     check_requirements()
-    install_homebrew()
-    update_hosts(hostname)
-    set_hostname(hostname)
+    update_hosts()
+    set_hostname()
     install_nginx()
-    install_mariadb(mariadb_version)
+    install_mariadb()
     update_php()
     configure_daemons()
   if (type == 'end'):
     configure_mariadb()
-    install_drush(drush_version)
-    install_aegir(aegir_version, hostname)
+    install_drush()
+    install_aegir()
 
 def check_requirements():
   check_xcode()
@@ -39,45 +40,63 @@ def check_xcode():
   print(green('>>>> Download and install Xcode using the Mac App Store with the link above'))
   print(green(">>>> (it's free, but will take a while to download if your Internet connection is slow)"))
   print(green('>>>> Once the download has finished run the newly downloaded "Install Xcode" app which will appear in Launchpad and follow the prompts.'))
-  print(green('>>>> Now go back to your terminal window and type the following to install Homebrew'))
-
   if (not confirm('Is XCode installed?', default=False)):
     abort('XCode is required by Homebrew')
 
 def check_homebrew():
   print(green('>>> Install the requirements for this process; Homebrew'))
 
-  # TODO: install homebrew
-  #run('ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"') <-- doesn't work via run at the moment?
-  # the press enter to continue bit?
-
   if (not confirm('Is homebrew installed?', default=False)):
-    abort('Homebrew is required')
-    #install_homebrew()
+    install_homebrew()
 
 def install_homebrew():
+  print(green('>>> Install Homebrew'))
+  #run('ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"') <-- doesn't work via run at the moment because of getc?
+  print(yellow('>>>> Downloading homebrew install script'))
+  run('curl -fsSL https://raw.github.com/gist/323731 > homebrew.rb')
+  print(yellow('>>>> Altering homebrew.rb to work over fabric'))
+  run("sed -i.bak -E -e 's/(abort unless )getc == 13/\\1gets == \"\\\\\\n\"/g' homebrew.rb")
+  run('ruby homebrew.rb')
+
   print(yellow('>>>> Download homebrew-alt so we can rebuild php with the required components'))
-  run('git clone https://github.com/adamv/homebrew-alt.git /usr/local/LibraryAlt')
+
+  homebrew_alt_dir = '/usr/local/LibraryAlt'
+  with settings(warn_only=True):
+    if local("test -d %s" % homebrew_alt_dir).failed:
+      run('git clone https://github.com/adamv/homebrew-alt.git %s' % homebrew_alt_dir)
+
+  with cd(homebrew_alt_dir):
+    # put git status check here
+    run('git pull')
+
+  path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
   with settings(warn_only=True):
     if run("test -f %s" % '~/.bash_profile').failed:
-      run('echo "PATH=$PATH:/usr/local/sbin; export PATH" > ~/.bash_profile')
+      run('echo "%s" > ~/.bash_profile' % path_update)
     else:
-      append("~/.bash_profile", 'PATH=$PATH:/usr/local/sbin; export PATH', use_sudo=False)
+      # TODO: check if this already exists first
+      append("~/.bash_profile", '%s' % path_update, use_sudo=False)
 
-def update_hosts(domain, ip='127.0.0.1'):
+def update_hosts(domain='', ip='127.0.0.1'):
   hosts = '/etc/hosts'
+  if (domain == ''):
+    domain = run('hostname -f')
   if (contains(hosts, domain)):
     # Comment existing hosts entry for that domain
     # TODO: NOT! if it's localhost
-    sudo("sed -i.bak -E -e 's/(^.*%s)/#\\1/g' /etc/hosts" % domain)
+    # TODO: fix the escaping here
+    sudo("sed -i.bak -E -e 's/(.*%s)/#\\1/g' /etc/hosts" % domain)
   sudo('echo "%s  %s" >> /etc/hosts' % (ip, domain))
 
 def set_hostname(hostname=''):
+  if (hostname != ''):
+    env.hostname = hostname
+
   if confirm('Do you want to change/set your hostname?', default=True):
     print(green(">>>> Set hostname as it's required for sane default in aegir setup, we chose rl.ld for Realityloop Local Development you can use something else instead of rl but it needs to end in .ld"))
     if (hostname == ''):
       current_hostname = run('hostname')
-      hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
+      env.hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
     sudo('scutil --set HostName %s' % hostname)
 
 def install_nginx():
@@ -85,14 +104,10 @@ def install_nginx():
   print(green('>>>> Prevent apache from being loaded automatically'))
   sudo('launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist')
 
-  # TODO: the sed doesn't seem to be working / dislikes the newline in the replacement string
-  '''
   print(green('>>>> Modify homebrew recipe to add debugging'))
   nginx_recipe = '/usr/local/Library/Formula/nginx.rb'
   if (not contains(nginx_recipe, '--with-debug')):
-    # sed -i.bak -E -e 's/(args = \["--prefix=#{prefix}",)/\n"--with-debug",/g' nginx.rb
-    sudo('sed -i.bak -E -e \'s/(\s+args = \["--prefix=#{prefix}",\n)/\1            "--with-debug",/g\' %s' % nginx_recipe)
-  '''
+    run('perl -p -i.bak -e \'s/(args = \["--prefix=#{prefix}",)/\\1\n            "--with-debug",/g\' %s' % nginx_recipe)
 
   run('brew install nginx')
 
@@ -132,7 +147,7 @@ def install_mariadb():
   sudo('mysql_install_db')
   print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
 
-def update_php(php_version):
+def update_php(php_version=''):
   print(green('>>> Update php'))
 
   print(green('>>>> Backup your original version of PHP, in the case you ever want to revert to a vanilla state. Note: You may need to repeat this step anytime you use combo updater to install OS X updates'))
@@ -142,6 +157,8 @@ def update_php(php_version):
   run('brew install /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm')
 
   print(green('>>>> Once compilation is complete create your php-fpm config file'))
+  if (php_version == ''):
+    php_version = run("brew info /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm | grep ^php | sed 's/php //g'")
   sudo('cp /usr/local/Cellar/php/%s/etc/php-fpm.conf.default /usr/local/Cellar/php/%s/etc/php-fpm.conf' % (php_version, php_version))
 
   print(green('>>>> Create symbolic link for it in /usr/local/etc/'))
@@ -182,7 +199,7 @@ def update_php(php_version):
   print(yellow('>>>> Set php memory_limit to 256M'))
   sudo("sed -i.bak -E -e 's/(memory_limit = ).*/\\256M/g' %s" % php_config)
 
-def configure_daemons(mariadb_version):
+def configure_daemons(mariadb_version=''):
   print(green('>>> Configure Service Launch Daemons'))
   print(green('>>>> This is so everything runs automatically on startup'))
 
@@ -192,13 +209,16 @@ def configure_daemons(mariadb_version):
   print(green('>>>> Download LaunchDaemon for php-fpm'))
   sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/php-fpm.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
 
+  if (mariadb_version == ''):
+    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
+
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
 
   print(yellow('Restart your computer to enable the services Yes you really need to do this now, or the next step will not work'))
   print(red('After restart, you can continue the installation by running: fab -H [hostname] %s' % env.arguments))
 
-def configure_mariadb(mariadb_version):
+def configure_mariadb(mariadb_version=''):
   print(green('>>> Answer the prompts as follows, replace [password] with a password of your own chosing'))
   print(yellow('>>>> Enter current password for root (enter for none): [Enter]'))
   print(yellow('>>>> Set root password? [Y/n] y'))
@@ -209,10 +229,17 @@ def configure_mariadb(mariadb_version):
   print(yellow('>>>> Remove test database and access to it? [Y/n] y'))
   print(yellow('>>>> Reload privilege tables now? [Y/n] y'))
 
+  if (mariadb_version == ''):
+    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
+
   sudo('/usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
 
-def install_drush(drush_version):
+def install_drush(drush_version=''):
   print(green('>>> Install Drush'))
+
+  if (drush_version == ''):
+    # attempt to be clever with getting version number
+    drush_version = run("curl -s http://drupal.org/node/97249/release/feed | grep '<title>drush 7.x-4' | sed -n 1p | sed -E 's/.*<title>drush (.*)<\/title>/\\1/g'")
 
   #run('export DRUSH_VERSION=7.x-4.5')
   run('curl -O http://ftp.drupal.org/files/projects/drush-%s.tar.gz' % drush_version)
@@ -223,9 +250,9 @@ def install_drush(drush_version):
   sudo('ln -s ~/drush/drush /usr/local/bin/drush')
 
   print(green('>>>> Download drush_make'))
-  run('drush dl drush_make-6.x --destination="/users/`whoami`/.drush"')
+  run('drush dl drush_make-6.x --destination="/Users/`whoami`/.drush"')
 
-def install_aegir(aegir_version, hostname=''):
+def install_aegir(aegir_version=''):
   print(green('>>> Install Aegir'))
   print(green('>>>> our in the home stretch now!'))
   print(green('>>>> Make a few small changes required for this to work properly'))
@@ -239,10 +266,14 @@ def install_aegir(aegir_version, hostname=''):
 
   # TODO: check if version string includes 6.x or 7.x
   print(green('>>>> Download provision'))
-  run('drush dl provision-6.x --destination="/users/`whoami`/.drush"')
+  run('drush dl provision-6.x --destination="/Users/`whoami`/.drush"')
 
   #Apply the following patch to provision until version 6.x-1.5 of aegir comes out
   #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
+
+  if (aegir_version == ''):
+    # attempt to be clever with getting version number
+    aegir_version = run("curl -s http://drupal.org/node/195997/release/feed | grep '<title>hostmaster 6.x' | sed -n 1p | sed -E 's/.*<title>hostmaster (.*)<\/title>/\\1/g'")
 
   print(green('>>>> Install Hostmaster!'))
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx" % aegir_version)
