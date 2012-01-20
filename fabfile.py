@@ -20,7 +20,6 @@ def install(aegir_version='', hostname='', type='beginning'):
     install_mariadb()
   if (type == 'end'):
     update_php()
-    configure_mariadb()
     install_drush()
     install_aegir()
 
@@ -139,21 +138,40 @@ def install_mariadb(mariadb_version=''):
 
   run('brew install mariadb')
 
-  print(green('>>>> Once compilation has finished unset TMPDIR'))
-  run('unset TMPDIR')
-
-  print(green('>>>> Then mysql_install_db'))
-  sudo('mysql_install_db')
-  #print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
-
   if (mariadb_version == ''):
     mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
 
+  print(green('>>>> Once compilation has finished unset TMPDIR'))
+  print(green('>>>> Then mysql_install_db'))
+  run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_install_db' % mariadb_version)
+
+  print(green('>>> Answer the prompts as follows, replace [password] with a password of your own chosing'))
+  print(yellow('>>>> Enter current password for root (enter for none): [Enter]'))
+  print(yellow('>>>> Set root password? [Y/n] y'))
+  print(yellow('>>>> New password: [password]'))
+  print(yellow('>>>> Re-enter new password: [password]'))
+  print(yellow('>>>> Remove anonymous users? [Y/n] y'))
+  print(yellow('>>>> Disallow root login remotely? [Y/n] y'))
+  print(yellow('>>>> Remove test database and access to it? [Y/n] y'))
+  print(yellow('>>>> Reload privilege tables now? [Y/n] y'))
+  print('')
+  run('mysql.server start')
+  run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
+
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
+  sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
+
+
+  '''
+  run('mkdir ~/Library/LaunchAgents')
+  run('cp -vi /usr/local/Cellar/mariadb/5.2.8/com.mysql.mysqld.plist ~/Library/LaunchAgents/')
+  run('launchctl load -w ~/Library/LaunchAgents/com.mysql.mysqld.plist')
+  #print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
 
   print(yellow('Restart your computer to enable the services Yes you really need to do this now, or the next step will not work'))
   print(red('After restart, you can continue the installation by running: fab -H [hostname] %s' % env.arguments))
+  '''
 
 def update_php(php_version=''):
   print(green('>>> Update php'))
@@ -205,26 +223,11 @@ def update_php(php_version=''):
   # TODO: test this replacement
   php_config = '/usr/local/etc/php.ini'
   print(yellow('>>>> Set php memory_limit to 256M'))
-  sudo("sed -i.bak -E -e 's/(memory_limit = ).*/\\1256M/g' %s" % php_config)
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('memory_limit =', php_config))
+  sudo('echo "%s" >> %s' % ('memory_limit = 256M', php_config))
 
   print(green('>>>> Download LaunchDaemon for php-fpm'))
   sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/php-fpm.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
-
-def configure_mariadb(mariadb_version=''):
-  print(green('>>> Answer the prompts as follows, replace [password] with a password of your own chosing'))
-  print(yellow('>>>> Enter current password for root (enter for none): [Enter]'))
-  print(yellow('>>>> Set root password? [Y/n] y'))
-  print(yellow('>>>> New password: [password]'))
-  print(yellow('>>>> Re-enter new password: [password]'))
-  print(yellow('>>>> Remove anonymous users? [Y/n] y'))
-  print(yellow('>>>> Disallow root login remotely? [Y/n] y'))
-  print(yellow('>>>> Remove test database and access to it? [Y/n] y'))
-  print(yellow('>>>> Reload privilege tables now? [Y/n] y'))
-
-  if (mariadb_version == ''):
-    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
-
-  sudo('/usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
 
 def install_drush(drush_version=''):
   print(green('>>> Install Drush'))
