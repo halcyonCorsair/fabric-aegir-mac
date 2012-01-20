@@ -158,6 +158,7 @@ def install_mariadb(mariadb_version=''):
   run('mysql.server start')
   run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
 
+  # TODO: Test if this works post-restart
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
   sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
