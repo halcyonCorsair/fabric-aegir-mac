@@ -49,12 +49,7 @@ def check_homebrew():
 
 def install_homebrew():
   print(green('>>> Install Homebrew'))
-  #run('ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"') <-- doesn't work via run at the moment because of getc?
-  print(yellow('>>>> Downloading homebrew install script'))
-  run('curl -fsSL https://raw.github.com/gist/323731 > homebrew.rb')
-  print(yellow('>>>> Altering homebrew.rb to work over fabric'))
-  run("sed -i.bak -E -e 's/(abort unless )getc == 13/\\1gets == \"\\\\\\n\"/g' homebrew.rb")
-  run('ruby homebrew.rb')
+  run('ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"')
 
   print(yellow('>>>> Download homebrew-alt so we can rebuild php with the required components'))
 
