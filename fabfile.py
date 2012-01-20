@@ -15,7 +15,6 @@ def install(aegir_version='', hostname='', type='beginning'):
   env.hostname = hostname
   if (type == 'beginning'):
     check_requirements()
-    update_hosts()
     set_hostname()
     install_nginx()
     install_mariadb()
@@ -80,7 +79,7 @@ def update_hosts(domain='', ip='127.0.0.1'):
   hosts = '/etc/hosts'
   if (domain == ''):
     domain = run('hostname -f')
-  if (contains(hosts, domain)):
+  if (domain != 'localhost' and contains(hosts, domain)):
     # Comment existing hosts entry for that domain
     # TODO: NOT! if it's localhost
     # TODO: fix the escaping here
@@ -88,15 +87,18 @@ def update_hosts(domain='', ip='127.0.0.1'):
   sudo('echo "%s  %s" >> /etc/hosts' % (ip, domain))
 
 def set_hostname(hostname=''):
-  if (hostname != ''):
-    env.hostname = hostname
+  current_hostname = run('hostname -f')
 
-  if confirm('Do you want to change/set your hostname?', default=True):
-    print(green(">>>> Set hostname as it's required for sane default in aegir setup, we chose rl.ld for Realityloop Local Development you can use something else instead of rl but it needs to end in .ld"))
-    if (hostname == ''):
-      current_hostname = run('hostname')
+  print(green(">>>> Set hostname as it's required for sane default in aegir setup, we chose rl.ld for Realityloop Local Development you can use something else instead of rl but it needs to end in .ld"))
+
+  if confirm('Your current hostname is %s, do you want to change your hostname?' % current_hostname, default=False):
+    if (hostname != ''):
+      env.hostname = hostname
+    else:
+      current_hostname = run('hostname -f')
       env.hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
     sudo('scutil --set HostName %s' % hostname)
+    update_hosts()
 
 def install_nginx():
   print(green('>>> Setting up Nginx'))
