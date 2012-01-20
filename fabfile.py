@@ -207,6 +207,22 @@ def update_php(php_version=''):
   print(yellow('pm.max_spare_servers = 5'))
   print(yellow('pm.max_requests = 500'))
 
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pid =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('user =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('group =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.start_servers =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.min_spare_servers =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_spare_servers =', fpm_config))
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_requests =', fpm_config))
+
+  sudo('echo "%s" >> %s' % ('pid = /usr/local/var/run/php-fpm.pid', fpm_config))
+  sudo('echo "%s" >> %s' % ('user = _www', fpm_config))
+  sudo('echo "%s" >> %s' % ('group = _www', fpm_config))
+  sudo('echo "%s" >> %s' % ('pm.start_servers = 3', fpm_config))
+  sudo('echo "%s" >> %s' % ('pm.min_spare_servers = 3', fpm_config))
+  sudo('echo "%s" >> %s' % ('pm.max_spare_servers = 5', fpm_config))
+  sudo('echo "%s" >> %s' % ('pm.max_requests = 500', fpm_config))
+
   print(green('>>>> Create directory and file for php-fpm log'))
   sudo('mkdir /usr/local/Cellar/php/%s/var/log/' % php_version)
   sudo('touch /usr/local/Cellar/php/%s/var/log/php-fpm.log' % php_version)
@@ -214,9 +230,7 @@ def update_php(php_version=''):
   print(green('>>>> Make our log file visible in Console app'))
   sudo('ln -s /usr/local/Cellar/php/%s/var/log/php-fpm.log /var/log/nginx/php-fpm.log' % php_version)
 
-  print(green('>>>> Set your timezone in php.ini http://www.php.net/manual/en/timezones.php'))
-
-# TODO
+  print(green('>>>> You may want to set your timezone in php.ini http://www.php.net/manual/en/timezones.php'))
   print(yellow('$ nano /usr/local/etc/php.ini'))
   print(yellow('I added the follwing under the ;date.timezone = line'))
   print(yellow('date.timezone = Australia/Melbourne'))
