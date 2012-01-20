@@ -267,10 +267,13 @@ def install_aegir(aegir_version=''):
   print(green('>>>> our in the home stretch now!'))
   print(green('>>>> Make a few small changes required for this to work properly'))
 
-  sudo('mkdir /var/aegir')
-  sudo('chown `whoami` /var/aegir')
+  username = run('whoami')
+  with settings(warn_only=True):
+    if local("test -d %s" % '/var/aegir').failed:
+      sudo('mkdir /var/aegir')
+  sudo('chown %s /var/aegir' % username)
   sudo('chgrp staff /var/aegir')
-  sudo('dscl . append /Groups/_www GroupMembership `whoami`')
+  sudo('dscl . append /Groups/_www GroupMembership %s' % username)
 
   print(green('>>>> Manually Install Drush and Aegir components'))
 
@@ -293,8 +296,9 @@ def install_aegir(aegir_version=''):
   run('rmdir /var/aegir/platforms')
   run('ln -s /Users/`whoami`/Sites /var/aegir/platforms')
 
+  # TODO: nginx invalid option reload
+
   print(green('>>>> Open your web browser and start creating platforms and sites!'))
-  if (hostname == ''):
-    hostname = run('hostname -f')
+  hostname = run('hostname -f')
   print(green('>>>> http://%s' % hostname))
 
