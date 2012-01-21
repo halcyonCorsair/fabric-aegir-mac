@@ -12,15 +12,14 @@ time = time.strftime('%Y%m%d-%H%M')
 def install(aegir_version='', hostname='', type='beginning'):
   env.arguments = "%s, hostname = '%s'" % (aegir_version, hostname)
   env.hostname = hostname
-  if (type == 'beginning'):
-    check_requirements()
-    set_hostname()
-    install_nginx()
-    install_mariadb()
-  if (type == 'end'):
-    update_php()
-    install_drush()
-    install_aegir()
+
+  check_requirements()
+  set_hostname()
+  install_nginx()
+  install_mariadb()
+  update_php()
+  install_drush()
+  install_aegir()
 
 def check_requirements():
   check_xcode()
