@@ -157,6 +157,7 @@ def install_mariadb(mariadb_version=''):
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
   sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
 
+# TODO: separate updating and configuring php
 def update_php(php_version=''):
   print(green('>>> Update php'))
 
