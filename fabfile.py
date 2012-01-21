@@ -230,13 +230,12 @@ def update_php(php_version=''):
   print(green('>>>> Make our log file visible in Console app'))
   sudo('ln -s /usr/local/Cellar/php/%s/var/log/php-fpm.log /var/log/nginx/php-fpm.log' % php_version)
 
-  print(green('>>>> You may want to set your timezone in php.ini http://www.php.net/manual/en/timezones.php'))
-  print(yellow('$ nano /usr/local/etc/php.ini'))
-  print(yellow('I added the follwing under the ;date.timezone = line'))
-  print(yellow('date.timezone = Australia/Melbourne'))
-
-  # TODO: test this replacement
   php_config = '/usr/local/etc/php.ini'
+  print(yellow('>>>> It is not safe to rely on the system\'s timezone settings.'))
+  timezone = prompt(green('Please enter your timezone, see http://www.php.net/manual/en/timezones.php for a list:'), key=None, default='Australia/Melbourne', validate=None)
+  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('date.timezone =', php_config))
+  sudo('echo "date.timezone = %s" >> %s' % (timezone, php_config))
+
   print(yellow('>>>> Set php memory_limit to 256M'))
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('memory_limit =', php_config))
   sudo('echo "%s" >> %s' % ('memory_limit = 256M', php_config))
