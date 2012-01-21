@@ -9,7 +9,7 @@ time = time.strftime('%Y%m%d-%H%M')
 # NOTE: fabric bug: osx uses -E instead of -r, this means sed(), comment(), and uncomment() won't work properly
 # TODO: perl inline replacement: perl -p -i.bak -e "s#a#b#" filename
 
-def install(aegir_version='', hostname='', type='beginning'):
+def install(aegir_version='', hostname=''):
   env.arguments = "%s, hostname = '%s'" % (aegir_version, hostname)
   env.hostname = hostname
 
