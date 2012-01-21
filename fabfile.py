@@ -157,21 +157,9 @@ def install_mariadb(mariadb_version=''):
   run('mysql.server start')
   run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
 
-  # TODO: Test if this works post-restart
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
   sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
-
-
-  '''
-  run('mkdir ~/Library/LaunchAgents')
-  run('cp -vi /usr/local/Cellar/mariadb/5.2.8/com.mysql.mysqld.plist ~/Library/LaunchAgents/')
-  run('launchctl load -w ~/Library/LaunchAgents/com.mysql.mysqld.plist')
-  #print(green(">>>> but don't follow any more of the prompts just now or you will run into problems, we'll do the rest later."))
-
-  print(yellow('Restart your computer to enable the services Yes you really need to do this now, or the next step will not work'))
-  print(red('After restart, you can continue the installation by running: fab -H [hostname] %s' % env.arguments))
-  '''
 
 def update_php(php_version=''):
   print(green('>>> Update php'))
