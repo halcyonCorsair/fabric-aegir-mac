@@ -6,8 +6,7 @@ import random, re, string, sys, time
 
 time = time.strftime('%Y%m%d-%H%M')
 
-# TODO: fabric bug: osx uses -E instead of -r, this means sed(), comment(), and uncomment() won't work properly
-# TODO: Get the aegir, drush, mariadb, and php versions in some clever way (but override if needed?)
+# NOTE: fabric bug: osx uses -E instead of -r, this means sed(), comment(), and uncomment() won't work properly
 # TODO: perl inline replacement: perl -p -i.bak -e "s#a#b#" filename
 
 def install(aegir_version='', hostname='', type='beginning'):
@@ -193,7 +192,6 @@ def update_php(php_version=''):
 
   print(green('>>>> Edit the conf file'))
 
-# TODO
   fpm_config = '/usr/local/etc/php-fpm.conf'
   print(yellow('$ nano /usr/local/etc/php-fpm.conf'))
   print(yellow('Add the following line below ;pid = run/php-fpm.pid'))
