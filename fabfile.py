@@ -86,7 +86,7 @@ def set_hostname(hostname=''):
     else:
       current_hostname = run('hostname -f')
       env.hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
-    sudo('scutil --set HostName %s' % hostname)
+    sudo('scutil --set HostName %s' % env.hostname)
     update_hosts()
 
 def install_nginx():
