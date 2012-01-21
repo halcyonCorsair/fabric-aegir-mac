@@ -60,12 +60,12 @@ def install_homebrew():
     run('git pull')
 
   path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
+  username = run('whoami')
   with settings(warn_only=True):
-    if run("test -f %s" % '~/.bash_profile').failed:
-      run('echo "%s" > ~/.bash_profile' % path_update)
-    else:
-      # TODO: check if this already exists first
-      append("~/.bash_profile", '%s' % path_update, use_sudo=False)
+    if run("test -f /Users/%s/.bash_profile" % username).failed:
+      run('echo "%s" > /Users/%s/.bash_profile' % (path_update, username))
+    elif (not contains('/Users/%s/.bash_profile' % username, 'sbin; export PATH')):
+      append("/Users/%s/.bash_profile" % username, path_update, use_sudo=False)
 
 def update_hosts(domain='', ip='127.0.0.1'):
   hosts = '/etc/hosts'
