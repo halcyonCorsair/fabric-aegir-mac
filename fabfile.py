@@ -53,11 +53,11 @@ def install_homebrew():
   homebrew_alt_dir = '/usr/local/LibraryAlt'
   with settings(warn_only=True):
     if local("test -d %s" % homebrew_alt_dir).failed:
-      run('git clone https://github.com/adamv/homebrew-alt.git %s' % homebrew_alt_dir)
+      sudo('git clone https://github.com/adamv/homebrew-alt.git %s' % homebrew_alt_dir)
 
   with cd(homebrew_alt_dir):
     # put git status check here
-    run('git pull')
+    sudo('git pull')
 
   path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
   username = run('whoami')
