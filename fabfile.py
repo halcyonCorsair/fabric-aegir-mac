@@ -162,7 +162,9 @@ def update_php(php_version=''):
   print(green('>>> Update php'))
 
   print(green('>>>> Backup your original version of PHP, in the case you ever want to revert to a vanilla state. Note: You may need to repeat this step anytime you use combo updater to install OS X updates'))
-  sudo('mv /usr/bin/php /usr/bin/php-apple')
+  with settings(warn_only=True):
+    if run("test -f /usr/bin/php-apple").failed:
+      sudo('mv /usr/bin/php /usr/bin/php-apple')
 
   print(green('>>>> Execute the brew install process using hombrew-alt php brew file'))
   run('brew install /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm')
