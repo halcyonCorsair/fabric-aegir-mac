@@ -72,9 +72,6 @@ def update_hosts(domain='', ip='127.0.0.1'):
   if (domain == ''):
     domain = run('hostname -f')
   if (domain != 'localhost' and contains(hosts, domain)):
-    # Comment existing hosts entry for that domain
-    # TODO: NOT! if it's localhost
-    # TODO: fix the escaping here
     sudo("sed -i.bak -E -e 's/(.*%s)/#\\1/g' /etc/hosts" % domain)
   sudo('echo "%s  %s" >> /etc/hosts' % (ip, domain))
 
