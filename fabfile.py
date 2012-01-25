@@ -16,8 +16,8 @@ def install(aegir_version='', hostname=''):
   check_requirements()
   set_hostname()
   install_mariadb()
-  update_php()
   install_nginx()
+  update_php()
   install_drush()
   install_aegir()
 
