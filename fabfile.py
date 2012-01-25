@@ -109,7 +109,8 @@ def install_nginx():
   sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.conf_.txt > %s' % nginx_config)
 
   print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
-  sudo("sed -i.bak -E -e 's/\[username\]/`whoami`/g' %s" % nginx_config)
+  username = run('whoami')
+  sudo("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
 
   print(green('>>>> Make nginx log files visible in Console app'))
   sudo('mkdir /var/log/nginx')
@@ -118,7 +119,8 @@ def install_nginx():
   sudo('mkdir /var/lib/nginx')
 
   print(green('>>>> Allow your user to restart nginx.'))
-  sudo('echo "`whoami` ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers')
+  username = run('whoami')
+  sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
 
   print(green('>>>> Create symbolic link for aegir vhosts'))
   sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/aegir.conf')
@@ -246,7 +248,8 @@ def install_drush(drush_version=''):
   sudo('ln -s ~/drush/drush /usr/local/bin/drush')
 
   print(green('>>>> Download drush_make'))
-  run('drush dl drush_make-6.x --destination="/Users/`whoami`/.drush"')
+  username = run('whoami')
+  run('drush dl drush_make-6.x --destination="/Users/%s/.drush"' % username)
 
 def install_aegir(aegir_version=''):
   print(green('>>> Install Aegir'))
@@ -263,9 +266,11 @@ def install_aegir(aegir_version=''):
 
   print(green('>>>> Manually Install Drush and Aegir components'))
 
+  username = run('whoami')
+
   # TODO: check if version string includes 6.x or 7.x
   print(green('>>>> Download provision'))
-  run('drush dl provision-6.x --destination="/Users/`whoami`/.drush"')
+  run('drush dl provision-6.x --destination="/Users/%s/.drush"' % username)
 
   #Apply the following patch to provision until version 6.x-1.5 of aegir comes out
   #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
