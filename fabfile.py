@@ -101,13 +101,6 @@ def install_nginx():
 
   run('brew install nginx')
 
-  print(green('>>>> Once nginx is compiled, backup the default nginx config'))
-  sudo('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
-
-  print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
-  username = run('whoami')
-  sudo("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
-
   print(green('>>>> Make nginx log files visible in Console app'))
   sudo('mkdir /var/log/nginx')
 
@@ -121,9 +114,8 @@ def install_nginx():
   if (nginx_version == ''):
     nginx_version = run("brew info nginx | grep ^nginx | sed 's/nginx //g'")
 
-  print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
+  print(green('>>>> Copy the LaunchAgent config to load nginx into place'))
   sudo('cp /usr/local/Cellar/nginx/%s/org.nginx.nginx.plist /System/Library/LaunchAgents/' % nginx_version)
-
   sudo('launchctl load -w /System/Library/LaunchAgents/org.nginx.nginx.plist')
 
 def install_mariadb(mariadb_version=''):
@@ -285,20 +277,23 @@ def install_aegir(aegir_version=''):
   run('rmdir /var/aegir/platforms')
   run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
 
-  # TODO: create conf.d directory, and add aegir config there
+  print(green('>>>> Once nginx is compiled, backup the default nginx config'))
+  sudo('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
+
+  print(green('>>>> Create nginx conf.d directory'))
+  sudo('mkdir /usr/local/etc/nginx/conf.d')
+
   # TODO: mv aegir conf linking etc, to aegir installation part and kick nginx @ that point
-  print(green('>>>> Downloading Nginx config from realityloop'))
+  print(green('>>>> Downloading Nginx config'))
   nginx_config = '/usr/local/etc/nginx/nginx.conf'
-  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.conf_.txt > %s' % nginx_config)
+  sudo('curl -fsSL https://raw.github.com/gist/1674935 > %s' % nginx_config)
 
   print(green('>>>> Create symbolic link for aegir vhosts'))
-  sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/aegir.conf')
+  sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/conf.d/aegir.conf')
 
   print(green('>>>> Reloading nginx'))
   sudo('launchctl stop org.nginx.nginx')
   sudo('launchctl start org.nginx.nginx')
-
-  # TODO: nginx invalid option reload
 
   print(green('>>>> Open your web browser and start creating platforms and sites!'))
   hostname = run('hostname -f')
