@@ -15,9 +15,9 @@ def install(aegir_version='', hostname=''):
 
   check_requirements()
   set_hostname()
-  install_nginx()
   install_mariadb()
   update_php()
+  install_nginx()
   install_drush()
   install_aegir()
 
@@ -104,10 +104,6 @@ def install_nginx():
   print(green('>>>> Once nginx is compiled, backup the default nginx config'))
   sudo('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
 
-  print(green('>>>> Downloading Nginx config from realityloop'))
-  nginx_config = '/usr/local/etc/nginx/nginx.conf'
-  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.conf_.txt > %s' % nginx_config)
-
   print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
   username = run('whoami')
   sudo("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
@@ -122,11 +118,13 @@ def install_nginx():
   username = run('whoami')
   sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
 
-  print(green('>>>> Create symbolic link for aegir vhosts'))
-  sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/aegir.conf')
+  if (nginx_version == ''):
+    nginx_version = run("brew info nginx | grep ^nginx | sed 's/nginx //g'")
 
-  print(green('>>>> Download the LaunchDaemon to load nginx on boot'))
-  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.nginx.plist')
+  print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
+  sudo('cp /usr/local/Cellar/nginx/%s/org.nginx.nginx.plist /System/Library/LaunchAgents/' % nginx_version)
+
+  sudo('launchctl load -w /System/Library/LaunchAgents/org.nginx.nginx.plist')
 
 def install_mariadb(mariadb_version=''):
   print(green('>>> Install MariaDB'))
@@ -283,9 +281,22 @@ def install_aegir(aegir_version=''):
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx" % aegir_version)
 
   print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
-  run('mkdir /Users/`whoami`/Sites')
+  run('mkdir /Users/%s/Sites' % username)
   run('rmdir /var/aegir/platforms')
-  run('ln -s /Users/`whoami`/Sites /var/aegir/platforms')
+  run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
+
+  # TODO: create conf.d directory, and add aegir config there
+  # TODO: mv aegir conf linking etc, to aegir installation part and kick nginx @ that point
+  print(green('>>>> Downloading Nginx config from realityloop'))
+  nginx_config = '/usr/local/etc/nginx/nginx.conf'
+  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/nginx.conf_.txt > %s' % nginx_config)
+
+  print(green('>>>> Create symbolic link for aegir vhosts'))
+  sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/aegir.conf')
+
+  print(green('>>>> Reloading nginx'))
+  sudo('launchctl stop org.nginx.nginx')
+  sudo('launchctl start org.nginx.nginx')
 
   # TODO: nginx invalid option reload
 
