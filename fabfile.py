@@ -249,14 +249,35 @@ def install_aegir(aegir_version=''):
 
   print(green('>>>> Manually Install Drush and Aegir components'))
 
-  username = run('whoami')
-
   # TODO: check if version string includes 6.x or 7.x
   print(green('>>>> Download provision'))
   run('drush dl provision-6.x --destination="/Users/%s/.drush"' % username)
 
-  #Apply the following patch to provision until version 6.x-1.5 of aegir comes out
+  #TODO: Apply the following patch to provision until version 6.x-1.5 of aegir comes out
   #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
+
+  print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
+  run('mkdir /Users/%s/Sites' % username)
+  run('rmdir /var/aegir/platforms')
+  run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
+
+  print(green('>>>> Once nginx is compiled, backup the default nginx config'))
+  run('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
+
+  print(green('>>>> Create nginx conf.d directory'))
+  run('mkdir /usr/local/etc/nginx/conf.d')
+
+  print(green('>>>> Downloading Nginx config'))
+  nginx_config = '/usr/local/etc/nginx/nginx.conf'
+  run('curl -fsSL https://raw.github.com/gist/1674935 > %s' % nginx_config)
+
+  print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
+  username = run('whoami')
+  run("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
+
+  print(green('>>>> Copy the LaunchDaemon config to load nginx into place'))
+  sudo('curl -fsSL https://raw.github.com/gist/1679829 > /System/Library/LaunchDaemons/org.nginx.nginx.plist')
+  sudo('launchctl load -w /System/Library/LaunchDaemons/org.nginx.nginx.plist')
 
   if (aegir_version == ''):
     # attempt to be clever with getting version number
@@ -265,32 +286,11 @@ def install_aegir(aegir_version=''):
   print(green('>>>> Install Hostmaster!'))
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx" % aegir_version)
 
-  print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
-  run('mkdir /Users/%s/Sites' % username)
-  run('rmdir /var/aegir/platforms')
-  run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
-
-  print(green('>>>> Once nginx is compiled, backup the default nginx config'))
-  sudo('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
-
-  print(green('>>>> Create nginx conf.d directory'))
-  sudo('mkdir /usr/local/etc/nginx/conf.d')
-
-  # TODO: mv aegir conf linking etc, to aegir installation part and kick nginx @ that point
-  print(green('>>>> Downloading Nginx config'))
-  nginx_config = '/usr/local/etc/nginx/nginx.conf'
-  sudo('curl -fsSL https://raw.github.com/gist/1674935 > %s' % nginx_config)
-
-  print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
-  username = run('whoami')
-  sudo("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
-
   print(green('>>>> Create symbolic link for aegir vhosts'))
-  sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/conf.d/aegir.conf')
+  with settings(warn_only=True):
+    run('ln -fns /var/aegir/config/nginx.conf /usr/local/etc/nginx/conf.d/aegir.conf')
 
-  print(green('>>>> Copy the LaunchDaemon config to load nginx into place'))
-  sudo('curl -fsSL https://raw.github.com/gist/1679829 > /System/Library/LaunchDaemons/org.nginx.nginx.plist')
-  sudo('launchctl load -w /System/Library/LaunchDaemons/org.nginx.nginx.plist')
+  sudo('/usr/local/sbin/nginx -s reload')
 
   print(green('>>>> Open your web browser and start creating platforms and sites!'))
   hostname = run('hostname -f')
