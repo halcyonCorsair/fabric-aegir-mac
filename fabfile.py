@@ -211,8 +211,8 @@ def update_php(php_version=''):
   sudo('echo "%s" >> %s' % ('memory_limit = 256M', php_config))
 
   print(green('>>>> Download LaunchDaemon for php-fpm'))
-  sudo('curl http://realityloop.com/sites/realityloop.com/files/uploads/php-fpm.plist_.txt > /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
-
+  # TODO: Remove NetworkState from the plist?
+  sudo('curl -fsSL https://raw.github.com/gist/1681635 > /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
   sudo('launchctl load -w /System/Library/LaunchDaemons/org.homebrew.php-fpm.plist')
 
 def install_drush(drush_version=''):
