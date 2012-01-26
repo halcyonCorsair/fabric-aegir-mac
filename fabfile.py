@@ -111,13 +111,6 @@ def install_nginx():
   username = run('whoami')
   sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
 
-  if (nginx_version == ''):
-    nginx_version = run("brew info nginx | grep ^nginx | sed 's/nginx //g'")
-
-  print(green('>>>> Copy the LaunchAgent config to load nginx into place'))
-  sudo('cp /usr/local/Cellar/nginx/%s/org.nginx.nginx.plist /System/Library/LaunchAgents/' % nginx_version)
-  sudo('launchctl load -w /System/Library/LaunchAgents/org.nginx.nginx.plist')
-
 def install_mariadb(mariadb_version=''):
   print(green('>>> Install MariaDB'))
   print(green('>>>> MariaDB is a community-developed branch of the MySQL database, the impetus being the community maintenance of its free status under GPL, as opposed to any uncertainty of MySQL license status under its current ownership by Oracle.'))
@@ -288,12 +281,16 @@ def install_aegir(aegir_version=''):
   nginx_config = '/usr/local/etc/nginx/nginx.conf'
   sudo('curl -fsSL https://raw.github.com/gist/1674935 > %s' % nginx_config)
 
+  print(green('>>>> Edit the config to set your username, replace [username] on the third line with your own username'))
+  username = run('whoami')
+  sudo("sed -i.bak -E -e 's/\[username\]/%s/g' %s" % (username, nginx_config))
+
   print(green('>>>> Create symbolic link for aegir vhosts'))
   sudo('ln -s /var/aegir/config/nginx.conf /usr/local/etc/nginx/conf.d/aegir.conf')
 
-  print(green('>>>> Reloading nginx'))
-  sudo('launchctl stop org.nginx.nginx')
-  sudo('launchctl start org.nginx.nginx')
+  print(green('>>>> Copy the LaunchDaemon config to load nginx into place'))
+  sudo('curl -fsSL https://raw.github.com/gist/1679829 > /System/Library/LaunchDaemons/org.nginx.nginx.plist')
+  sudo('launchctl load -w /System/Library/LaunchDaemons/org.nginx.nginx.plist')
 
   print(green('>>>> Open your web browser and start creating platforms and sites!'))
   hostname = run('hostname -f')
