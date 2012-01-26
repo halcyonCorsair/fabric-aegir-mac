@@ -162,21 +162,8 @@ def update_php(php_version=''):
   print(green('>>>> Create symbolic link for it in /usr/local/etc/'))
   sudo('ln -s /usr/local/Cellar/php/%s/etc/php-fpm.conf /usr/local/etc/php-fpm.conf' % php_version)
 
-  print(green('>>>> Edit the conf file'))
-
+  print(green('>>>> Edit the fpm config file'))
   fpm_config = '/usr/local/etc/php-fpm.conf'
-  print(yellow('$ nano /usr/local/etc/php-fpm.conf'))
-  print(yellow('Add the following line below ;pid = run/php-fpm.pid'))
-  print(yellow('pid = /usr/local/var/run/php-fpm.pid'))
-  print(yellow('Update the user and group section as follows'))
-  print(yellow('user = _www'))
-  print(yellow('group = _www'))
-  print(yellow('Remove the ; from the start of the following lines then save using Ctrl+X then Y'))
-  print(yellow('pm.start_servers = 3'))
-  print(yellow('pm.min_spare_servers = 3'))
-  print(yellow('pm.max_spare_servers = 5'))
-  print(yellow('pm.max_requests = 500'))
-
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pid =', fpm_config))
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('user =', fpm_config))
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('group =', fpm_config))
