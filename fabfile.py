@@ -253,8 +253,11 @@ def install_aegir(aegir_version=''):
   print(green('>>>> Download provision'))
   run('drush dl provision-6.x --destination="/Users/%s/.drush"' % username)
 
-  #TODO: Apply the following patch to provision until version 6.x-1.5 of aegir comes out
+  # Apply the following patch to provision until it is committed to aegir
   #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
+  run('curl http://drupalcode.org/sandbox/omega8cc/1111100.git/patch/a208ed4 > /Users/%s/.drush/provision/nginx_mac.patch' % username)
+  with cd('/Users/%s/.drush/provision'):
+    run('patch -p1 < nginx_mac.patch')
 
   print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
   run('mkdir /Users/%s/Sites' % username)
