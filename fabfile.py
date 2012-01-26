@@ -172,7 +172,8 @@ def update_php(php_version=''):
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_spare_servers =', fpm_config))
   sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_requests =', fpm_config))
 
-  sudo('echo "%s" >> %s' % ('pid = /usr/local/var/run/php-fpm.pid', fpm_config))
+  # Doesn't seem to like the pid directive, why? -- worked around via -g
+  #sudo('echo "%s" >> %s' % ('pid = /usr/local/var/run/php-fpm.pid', fpm_config))
   sudo('echo "%s" >> %s' % ('user = _www', fpm_config))
   sudo('echo "%s" >> %s' % ('group = _www', fpm_config))
   sudo('echo "%s" >> %s' % ('pm.start_servers = 3', fpm_config))
