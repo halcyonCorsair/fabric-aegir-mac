@@ -157,33 +157,33 @@ def update_php(php_version=''):
   print(green('>>>> Once compilation is complete create your php-fpm config file'))
   if (php_version == ''):
     php_version = run("brew info /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm | grep ^php | sed 's/php //g'")
-  sudo('cp /usr/local/Cellar/php/%s/etc/php-fpm.conf.default /usr/local/Cellar/php/%s/etc/php-fpm.conf' % (php_version, php_version))
+  run('cp /usr/local/Cellar/php/%s/etc/php-fpm.conf.default /usr/local/Cellar/php/%s/etc/php-fpm.conf' % (php_version, php_version))
 
   print(green('>>>> Create symbolic link for it in /usr/local/etc/'))
-  sudo('ln -s /usr/local/Cellar/php/%s/etc/php-fpm.conf /usr/local/etc/php-fpm.conf' % php_version)
+  run('ln -s /usr/local/Cellar/php/%s/etc/php-fpm.conf /usr/local/etc/php-fpm.conf' % php_version)
 
   print(green('>>>> Edit the fpm config file'))
   fpm_config = '/usr/local/etc/php-fpm.conf'
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pid =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('user =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('group =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.start_servers =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.min_spare_servers =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_spare_servers =', fpm_config))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_requests =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pid =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('user =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('group =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.start_servers =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.min_spare_servers =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_spare_servers =', fpm_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('pm.max_requests =', fpm_config))
 
   # Doesn't seem to like the pid directive, why? -- worked around via -g
-  #sudo('echo "%s" >> %s' % ('pid = /usr/local/var/run/php-fpm.pid', fpm_config))
-  sudo('echo "%s" >> %s' % ('user = _www', fpm_config))
-  sudo('echo "%s" >> %s' % ('group = _www', fpm_config))
-  sudo('echo "%s" >> %s' % ('pm.start_servers = 3', fpm_config))
-  sudo('echo "%s" >> %s' % ('pm.min_spare_servers = 3', fpm_config))
-  sudo('echo "%s" >> %s' % ('pm.max_spare_servers = 5', fpm_config))
-  sudo('echo "%s" >> %s' % ('pm.max_requests = 500', fpm_config))
+  #run('echo "%s" >> %s' % ('pid = /usr/local/var/run/php-fpm.pid', fpm_config))
+  run('echo "%s" >> %s' % ('user = _www', fpm_config))
+  run('echo "%s" >> %s' % ('group = _www', fpm_config))
+  run('echo "%s" >> %s' % ('pm.start_servers = 3', fpm_config))
+  run('echo "%s" >> %s' % ('pm.min_spare_servers = 3', fpm_config))
+  run('echo "%s" >> %s' % ('pm.max_spare_servers = 5', fpm_config))
+  run('echo "%s" >> %s' % ('pm.max_requests = 500', fpm_config))
 
   print(green('>>>> Create directory and file for php-fpm log'))
-  sudo('mkdir /usr/local/Cellar/php/%s/var/log/' % php_version)
-  sudo('touch /usr/local/Cellar/php/%s/var/log/php-fpm.log' % php_version)
+  run('mkdir /usr/local/Cellar/php/%s/var/log/' % php_version)
+  run('touch /usr/local/Cellar/php/%s/var/log/php-fpm.log' % php_version)
 
   print(green('>>>> Make our log file visible in Console app'))
   sudo('ln -s /usr/local/Cellar/php/%s/var/log/php-fpm.log /var/log/nginx/php-fpm.log' % php_version)
@@ -191,12 +191,12 @@ def update_php(php_version=''):
   php_config = '/usr/local/etc/php.ini'
   print(yellow('>>>> It is not safe to rely on the system\'s timezone settings.'))
   timezone = prompt(green('Please enter your timezone, see http://www.php.net/manual/en/timezones.php for a list:'), key=None, default='Australia/Melbourne', validate=None)
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('date.timezone =', php_config))
-  sudo('echo "date.timezone = %s" >> %s' % (timezone, php_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('date.timezone =', php_config))
+  run('echo "date.timezone = %s" >> %s' % (timezone, php_config))
 
   print(yellow('>>>> Set php memory_limit to 256M'))
-  sudo("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('memory_limit =', php_config))
-  sudo('echo "%s" >> %s' % ('memory_limit = 256M', php_config))
+  run("sed -i.bak -E -e 's/^(%s.*)/;\\1/g' %s" % ('memory_limit =', php_config))
+  run('echo "%s" >> %s' % ('memory_limit = 256M', php_config))
 
   print(green('>>>> Download LaunchDaemon for php-fpm'))
   # TODO: Remove NetworkState from the plist?
@@ -216,7 +216,7 @@ def install_drush(drush_version=''):
   run('rm drush-%s.tar.gz' % drush_version)
 
   print(green('>>>> Make Drush accesible via your path'))
-  sudo('ln -s ~/drush/drush /usr/local/bin/drush')
+  run('ln -s ~/drush/drush /usr/local/bin/drush')
 
   print(green('>>>> Download drush_make'))
   username = run('whoami')
