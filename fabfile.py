@@ -247,16 +247,11 @@ def install_aegir(aegir_version=''):
   with cd('/Users/%s/.drush/provision' % username):
     run('patch -p1 < nginx_mac.patch')
 
-  print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
-  run('mkdir /Users/%s/Sites' % username)
-  run('rmdir /var/aegir/platforms')
-  run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
-
-  print(green('>>>> Once nginx is compiled, backup the default nginx config'))
-  run('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
-
-  print(green('>>>> Create nginx conf.d directory'))
-  run('mkdir /usr/local/etc/nginx/conf.d')
+  with settings(warn_only=True):
+    print(green('>>>> Once nginx is compiled, backup the default nginx config'))
+    run('mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.bak')
+    print(green('>>>> Create nginx conf.d directory'))
+    run('mkdir -p /usr/local/etc/nginx/conf.d')
 
   print(green('>>>> Downloading Nginx config'))
   nginx_config = '/usr/local/etc/nginx/nginx.conf'
