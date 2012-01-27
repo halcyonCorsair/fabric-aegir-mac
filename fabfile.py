@@ -270,7 +270,13 @@ def install_aegir(aegir_version=''):
     aegir_version = run("curl -s http://drupal.org/node/195997/release/feed | grep '<title>hostmaster 6.x' | sed -n 1p | sed -E 's/.*<title>hostmaster (.*)<\/title>/\\1/g'")
 
   print(green('>>>> Install Hostmaster!'))
-  run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx" % aegir_version)
+  run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx --web_group=_www" % aegir_version)
+
+  print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
+  with settings(warn_only=True):
+    run('mkdir -p /Users/%s/Sites' % username)
+  run('rmdir /var/aegir/platforms')
+  run('ln -s /Users/%s/Sites /var/aegir/platforms' % username)
 
   print(green('>>>> Create symbolic link for aegir vhosts'))
   with settings(warn_only=True):
