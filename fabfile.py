@@ -227,7 +227,7 @@ def install_drush(drush_version=''):
 
 def install_aegir(aegir_version=''):
   print(green('>>> Install Aegir'))
-  print(green('>>>> our in the home stretch now!'))
+  print(green(">>>> We're in the home stretch now!"))
   print(green('>>>> Make a few small changes required for this to work properly'))
 
   username = run('whoami')
