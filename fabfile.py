@@ -73,18 +73,22 @@ def update_hosts(domain='', ip='127.0.0.1'):
   sudo('echo "%s  %s" >> /etc/hosts' % (ip, domain))
 
 def set_hostname(hostname=''):
+  print(green(">>>> Current Hostname:"))
   current_hostname = run('hostname -f')
 
-  print(green(">>>> Set hostname as it's required for sane default in aegir setup, we chose rl.ld for Realityloop Local Development you can use something else instead of rl but it needs to end in .ld"))
+  print(green(">>>> Set hostname as it's required for sane default in aegir setup, for example 'test.ld'.  You can use something else instead of test, but it needs to end in .ld"))
 
-  if confirm('Your current hostname is %s, do you want to change your hostname?' % current_hostname, default=False):
-    if (hostname != ''):
-      env.hostname = hostname
-    else:
-      current_hostname = run('hostname -f')
-      env.hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
-    sudo('scutil --set HostName %s' % env.hostname)
-    update_hosts()
+  if (hostname != ''):
+    env.hostname = hostname
+  elif confirm('Your current hostname is %s, do you want to change your hostname?' % current_hostname, default=False):
+    env.hostname = prompt('Please enter your desired hostname:', key=None, default=current_hostname, validate=None)
+    if (env.hostname == ''):
+      abort('You have entered an incorrect hostname')
+  else:
+    return
+
+  sudo('scutil --set HostName %s' % env.hostname)
+  update_hosts()
 
 def install_nginx():
   print(green('>>> Setting up Nginx'))
