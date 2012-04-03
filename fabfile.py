@@ -47,8 +47,9 @@ def check_homebrew():
 def install_homebrew():
   print(green('>>> Install Homebrew'))
   run('/usr/bin/ruby -e "$(/usr/bin/curl -fksSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"')
-  run('mkdir /usr/local/Cellar')
-  run('brew doctor')
+  run('mkdir -p /usr/local/Cellar')
+  with settings(warn_only=True):
+    run('brew doctor')
 
   print(green('>>>> Add /usr/local/sbin to your path'))
   path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
