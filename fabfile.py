@@ -225,6 +225,7 @@ def install_drush(drush_version=''):
   username = run('whoami')
   run('drush dl drush_make-6.x --destination="/Users/%s/.drush"' % username)
 
+# TODO: Support later than 6.x-1.x
 def install_aegir(aegir_version=''):
   print(green('>>> Install Aegir'))
   print(green(">>>> We're in the home stretch now!"))
