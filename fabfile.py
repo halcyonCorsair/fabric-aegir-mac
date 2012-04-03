@@ -90,28 +90,6 @@ def set_hostname(hostname=''):
   sudo('scutil --set HostName %s' % env.hostname)
   update_hosts()
 
-def install_nginx():
-  print(green('>>> Setting up Nginx'))
-  print(green('>>>> Prevent apache from being loaded automatically'))
-  sudo('launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist')
-
-  print(green('>>>> Modify homebrew recipe to add debugging'))
-  nginx_recipe = '/usr/local/Library/Formula/nginx.rb'
-  if (not contains(nginx_recipe, '--with-debug')):
-    run('perl -p -i.bak -e \'s/(args = \["--prefix=#{prefix}",)/\\1\n            "--with-debug",/g\' %s' % nginx_recipe)
-
-  run('brew install nginx')
-
-  print(green('>>>> Make nginx log files visible in Console app'))
-  sudo('mkdir /var/log/nginx')
-
-  print(green('>>>> Create the following directorty to stop "/var/lib/nginx/speed" failed (2: No such file or directory) error'))
-  sudo('mkdir /var/lib/nginx')
-
-  print(green('>>>> Allow your user to restart nginx.'))
-  username = run('whoami')
-  sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
-
 def install_mariadb(mariadb_version=''):
   print(green('>>> Install MariaDB'))
   print(green('>>>> MariaDB is a community-developed branch of the MySQL database, the impetus being the community maintenance of its free status under GPL, as opposed to any uncertainty of MySQL license status under its current ownership by Oracle.'))
@@ -142,6 +120,28 @@ def install_mariadb(mariadb_version=''):
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
   sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
   sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
+
+def install_nginx():
+  print(green('>>> Setting up Nginx'))
+  print(green('>>>> Prevent apache from being loaded automatically'))
+  sudo('launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist')
+
+  print(green('>>>> Modify homebrew recipe to add debugging'))
+  nginx_recipe = '/usr/local/Library/Formula/nginx.rb'
+  if (not contains(nginx_recipe, '--with-debug')):
+    run('perl -p -i.bak -e \'s/(args = \["--prefix=#{prefix}",)/\\1\n            "--with-debug",/g\' %s' % nginx_recipe)
+
+  run('brew install nginx')
+
+  print(green('>>>> Make nginx log files visible in Console app'))
+  sudo('mkdir /var/log/nginx')
+
+  print(green('>>>> Create the following directorty to stop "/var/lib/nginx/speed" failed (2: No such file or directory) error'))
+  sudo('mkdir /var/lib/nginx')
+
+  print(green('>>>> Allow your user to restart nginx.'))
+  username = run('whoami')
+  sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
 
 # TODO: separate updating and configuring php
 def update_php(php_version=''):
