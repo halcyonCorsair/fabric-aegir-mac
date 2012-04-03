@@ -253,11 +253,12 @@ def install_aegir(aegir_version=''):
   print(green('>>>> Download provision'))
   run('drush dl provision-6.x --destination="/Users/%s/.drush"' % username)
 
-  # Apply the following patch to provision until it is committed to aegir
-  #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
-  run('curl http://drupalcode.org/sandbox/omega8cc/1111100.git/patch/a208ed4 > /Users/%s/.drush/provision/nginx_mac.patch' % username)
-  with cd('/Users/%s/.drush/provision' % username):
-    run('patch -p1 < nginx_mac.patch')
+  if (aegir_version < '6.x-1.7'):
+    # Apply the following patch to provision until it is committed to aegir
+    #http://drupalcode.org/sandbox/omega8cc/1111100.git/commit/a208ed4
+    run('curl http://drupalcode.org/sandbox/omega8cc/1111100.git/patch/a208ed4 > /Users/%s/.drush/provision/nginx_mac.patch' % username)
+    with cd('/Users/%s/.drush/provision' % username):
+      run('patch -p1 < nginx_mac.patch')
 
   with settings(warn_only=True):
     print(green('>>>> Once nginx is compiled, backup the default nginx config'))
