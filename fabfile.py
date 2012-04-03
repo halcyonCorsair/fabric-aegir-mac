@@ -136,7 +136,7 @@ def install_nginx():
   print(green('>>>> Make nginx log files visible in Console app'))
   sudo('mkdir /var/log/nginx')
 
-  print(green('>>>> Create the following directorty to stop "/var/lib/nginx/speed" failed (2: No such file or directory) error'))
+  print(green('>>>> Create the following directory to stop "/var/lib/nginx/speed" failed (2: No such file or directory) error'))
   sudo('mkdir /var/lib/nginx')
 
   print(green('>>>> Allow your user to restart nginx.'))
