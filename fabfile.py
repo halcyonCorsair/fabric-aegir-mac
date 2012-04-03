@@ -200,7 +200,6 @@ def install_drush(drush_version=''):
     # attempt to be clever with getting version number
     drush_version = run("curl -s http://drupal.org/node/97249/release/feed | grep '<title>drush 7.x-4' | sed -n 1p | sed -E 's/.*<title>drush (.*)<\/title>/\\1/g'")
 
-  #run('export DRUSH_VERSION=7.x-4.5')
   run('curl -O http://ftp.drupal.org/files/projects/drush-%s.tar.gz' % drush_version)
   run('gunzip -c drush-%s.tar.gz | tar -xf -' % drush_version)
   run('rm drush-%s.tar.gz' % drush_version)
