@@ -46,26 +46,13 @@ def check_homebrew():
 
 def install_homebrew():
   print(green('>>> Install Homebrew'))
-  run('ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"')
+  run('/usr/bin/ruby -e "$(/usr/bin/curl -fksSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"')
+  run('mkdir /usr/local/Cellar')
+  run('brew doctor')
 
-  print(yellow('>>>> Download homebrew-alt so we can rebuild php with the required components'))
-
-  homebrew_alt_dir = '/usr/local/LibraryAlt'
-  with settings(warn_only=True):
-    if local("test -d %s" % homebrew_alt_dir).failed:
-      sudo('git clone https://github.com/adamv/homebrew-alt.git %s' % homebrew_alt_dir)
-
-  with cd(homebrew_alt_dir):
-    # put git status check here
-    sudo('git pull')
-
-  path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
-  username = run('whoami')
-  with settings(warn_only=True):
-    if run("test -f /Users/%s/.bash_profile" % username).failed:
-      run('echo "%s" > /Users/%s/.bash_profile' % (path_update, username))
-    elif (not contains('/Users/%s/.bash_profile' % username, 'sbin; export PATH')):
-      append("/Users/%s/.bash_profile" % username, path_update, use_sudo=False)
+def homebrew_add_tap(tap=''):
+  print(yellow('>>>> Setup homebrew tap for %s' % tap))
+  run('brew tap %s' % tap)
 
 def update_hosts(domain='', ip='127.0.0.1'):
   hosts = '/etc/hosts'
@@ -146,17 +133,20 @@ def install_mariadb(mariadb_version=''):
 def update_php(php_version=''):
   print(green('>>> Update php'))
 
+  print(green('>>>> Add php tap for homebrew'))
+  homebrew_add_tap('josegonzalez/homebrew-php')
+
   print(green('>>>> Backup your original version of PHP, in the case you ever want to revert to a vanilla state. Note: You may need to repeat this step anytime you use combo updater to install OS X updates'))
   with settings(warn_only=True):
     if run("test -f /usr/bin/php-apple").failed:
       sudo('mv /usr/bin/php /usr/bin/php-apple')
 
   print(green('>>>> Execute the brew install process using hombrew-alt php brew file'))
-  run('brew install /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm')
+  run('brew install php --with-mariadb --with-fpm')
 
   print(green('>>>> Once compilation is complete create your php-fpm config file'))
   if (php_version == ''):
-    php_version = run("brew info /usr/local/LibraryAlt/duplicates/php.rb --with-mysql --with-fpm | grep ^php | sed 's/php //g'")
+    php_version = run("brew info php --with-mariadb --with-fpm | grep ^php | sed 's/php //g'")
   run('cp /usr/local/Cellar/php/%s/etc/php-fpm.conf.default /usr/local/Cellar/php/%s/etc/php-fpm.conf' % (php_version, php_version))
 
   print(green('>>>> Create symbolic link for it in /usr/local/etc/'))
