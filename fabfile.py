@@ -50,6 +50,15 @@ def install_homebrew():
   run('mkdir /usr/local/Cellar')
   run('brew doctor')
 
+  print(green('>>>> Add /usr/local/sbin to your path'))
+  path_update = 'PATH=$PATH:/usr/local/sbin; export PATH'
+  username = run('whoami')
+  with settings(warn_only=True):
+    if run("test -f /Users/%s/.bash_profile" % username).failed:
+      run('echo "%s" > /Users/%s/.bash_profile' % (path_update, username))
+    elif (not contains('/Users/%s/.bash_profile' % username, 'sbin; export PATH')):
+      append("/Users/%s/.bash_profile" % username, path_update, use_sudo=False)
+
 def homebrew_add_tap(tap=''):
   print(yellow('>>>> Setup homebrew tap for %s' % tap))
   run('brew tap %s' % tap)
