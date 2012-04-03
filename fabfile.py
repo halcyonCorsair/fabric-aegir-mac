@@ -230,6 +230,15 @@ def install_aegir(aegir_version=''):
   print(green(">>>> We're in the home stretch now!"))
   print(green('>>>> Make a few small changes required for this to work properly'))
 
+  if (aegir_version == ''):
+    # attempt to be clever with getting version number
+    aegir_version = run('curl -s http://drupal.org/node/195997/release/feed | grep "<title>hostmaster 6.x-1\." | sed -n 1p | sed -E "s/.*<title>hostmaster (.*)<\/title>/\\1/g"')
+
+  if (aegir_version != ''):
+    print(green('>>>> Install Aegir version: %s' % aegir_version))
+  else:
+    abort("Not sure what version of Aegir to install here...")
+
   username = run('whoami')
   with settings(warn_only=True):
     if local("test -d %s" % '/var/aegir').failed:
@@ -267,10 +276,6 @@ def install_aegir(aegir_version=''):
   print(green('>>>> Copy the LaunchDaemon config to load nginx into place'))
   sudo('curl -fsSL https://raw.github.com/gist/1679829 > /System/Library/LaunchDaemons/org.nginx.nginx.plist')
   sudo('launchctl load -w /System/Library/LaunchDaemons/org.nginx.nginx.plist')
-
-  if (aegir_version == ''):
-    # attempt to be clever with getting version number
-    aegir_version = run("curl -s http://drupal.org/node/195997/release/feed | grep '<title>hostmaster 6.x' | sed -n 1p | sed -E 's/.*<title>hostmaster (.*)<\/title>/\\1/g'")
 
   print(green('>>>> Install Hostmaster!'))
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx --web_group=_www" % aegir_version)
