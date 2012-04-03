@@ -98,11 +98,11 @@ def install_mariadb(mariadb_version=''):
   run('brew install mariadb')
 
   if (mariadb_version == ''):
-    mariadb_version = run("brew info mariadb | grep ^mariadb | sed 's/mariadb //g'")
+    mariadb_version = run("brew info mariadb 2> /dev/null | grep ^mariadb | sed 's/mariadb //g'")
 
   print(green('>>>> Once compilation has finished unset TMPDIR'))
   print(green('>>>> Then mysql_install_db'))
-  run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_install_db' % mariadb_version)
+  run('unset TMPDIR && mysql_install_db')
 
   print(green('>>> Answer the prompts as follows, replace [password] with a password of your own chosing'))
   print(yellow('>>>> Enter current password for root (enter for none): [Enter]'))
@@ -118,8 +118,8 @@ def install_mariadb(mariadb_version=''):
   run('unset TMPDIR && /usr/local/Cellar/mariadb/%s/bin/mysql_secure_installation' % mariadb_version)
 
   print(green('>>>> Copy the LaunchDaemon to load mariadb on boot into place'))
-  sudo('cp /usr/local/Cellar/mariadb/%s/com.mysql.mysqld.plist /System/Library/LaunchDaemons/com.mysql.mysqld.plist' % mariadb_version)
-  sudo('launchctl load -w /System/Library/LaunchDaemons/com.mysql.mysqld.plist')
+  sudo('cp /usr/local/Cellar/mariadb/%s/homebrew.mxcl.mariadb.plist /System/Library/LaunchDaemons/homebrew.mxcl.mariadb.plist' % mariadb_version)
+  sudo('launchctl load -w /System/Library/LaunchDaemons/homebrew.mxcl.mariadb.plist')
 
 def install_nginx():
   print(green('>>> Setting up Nginx'))
