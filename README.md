@@ -1,3 +1,16 @@
+Prerequisites:
+
+See the fabric documentation at: http://docs.fabfile.org
+
+Install fabric:
+
+```bash
+$ sudo pip install fabric
+```
+
+
+Getting started:
+
 This currently only works when SSH is enabled on the target machine (even if it is localhost)
 
 Install fabric as per: http://docs.fabfile.org/en/1.3.4/index.html#installation
