@@ -144,6 +144,8 @@ def install_nginx():
   username = run('whoami')
   sudo('echo "%s ALL=NOPASSWD: /usr/local/sbin/nginx" >> /etc/sudoers' % username)
 
+  print(yellow(">>>> NOTE: We don't start nginx until after we finish installing aegir"))
+
 # TODO: separate updating and configuring php
 def update_php(php_version=''):
   print(green('>>> Update php'))
