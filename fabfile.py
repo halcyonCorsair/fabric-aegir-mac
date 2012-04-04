@@ -160,13 +160,8 @@ def update_php(php_version=''):
   print(green('>>>> Execute the brew install process using hombrew-alt php brew file'))
   run('brew install php --with-mariadb --with-fpm')
 
-  print(green('>>>> Once compilation is complete create your php-fpm config file'))
   if (php_version == ''):
     php_version = run("brew info php --with-mariadb --with-fpm | grep ^php | sed 's/php //g'")
-  run('cp /usr/local/Cellar/php/%s/etc/php-fpm.conf.default /usr/local/Cellar/php/%s/etc/php-fpm.conf' % (php_version, php_version))
-
-  print(green('>>>> Create symbolic link for it in /usr/local/etc/'))
-  run('ln -s /usr/local/Cellar/php/%s/etc/php-fpm.conf /usr/local/etc/php-fpm.conf' % php_version)
 
   print(green('>>>> Edit the fpm config file'))
   fpm_config = '/usr/local/etc/php-fpm.conf'
