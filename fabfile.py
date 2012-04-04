@@ -91,6 +91,56 @@ def set_hostname(hostname=''):
   sudo('scutil --set HostName %s' % env.hostname)
   update_hosts()
 
+def setup_named():
+  #Backup the default configuration
+  with settings(warn_only=True):
+    if run("test -f /etc/named.conf.bck").failed:
+      sudo('cp /etc/named.conf /etc/named.conf.bck')
+
+  #Create the keyfile that is read by both rndc and named on startup
+  sudo('rndc-confgen -a')
+
+  #Edit the named.conf file
+  #Inside the "options {" block add the following before the last }
+  #forwarders {
+  #       8.8.8.8;  //Google DNS
+  #       8.8.4.4;  //Google DNS
+  #};
+  sudo('perl -p -i.bak -e "s/options {\n/options {\n        forwarders {\n          8.8.8.8; \/\/ Google DNS\n          8.8.4.4; \/\/ Google DNS\n        };\n/" /etc/named.conf')
+
+  #Add the following just before zone "0.0.127.in-addr.arpa" IN {
+  #zone "ld" IN {
+  #       type master;
+  #       file "db.ld";
+  #};
+  sudo('perl -p -i.bak -e \'s/(zone "0.0.127.in-addr.arpa" IN {)/zone "ld" IN {\n        type master;\n        file "db.ld";\n};\n\n\\1/\' /etc/named.conf')
+
+  # Put our db.ld file in place
+  with settings(warn_only=True):
+    if run("test -f /var/named/db.ld").failed:
+      put('db.ld', '/var/named/db.ld', use_sudo=True)
+
+  #Run the following commands to ensure configuration is ok
+  sudo('named-checkconf /etc/named.conf')
+  sudo('named-checkzone ld /var/named/db.ld')
+
+  #Create configuration so that the wilcard is still accesible when you are not connected to a network
+  sudo('mkdir -p /etc/resolver')
+  sudo('echo "nameserver 127.0.0.1" >> /etc/resolver/ld')
+
+  #Set Bind to load on startup, and load it right now
+  with settings(warn_only=True):
+    sudo('launchctl unload -w /System/Library/LaunchDaemons/org.isc.named.plist')
+  sudo('launchctl load -w /System/Library/LaunchDaemons/org.isc.named.plist')
+
+  #Check setup with dig, were looking for NOERROR in the returned text
+  run('dig test.ld')
+
+  print(yellow('>>>> Set your computers network settings to use 127.0.0.1 as DNS server in System Preferences -> Network for both Wireless and Ethernet connections by clicking Advanced and selecting the DNS tab'))
+  if (confirm('Have you set 127.0.0.1 as your DNS server?', default=False)):
+    #test via ping (if it fails, try a restart or dscacheutil -flushcache)
+    ping('test.ld')
+
 def install_mariadb(mariadb_version=''):
   print(green('>>> Install MariaDB'))
   print(green('>>>> MariaDB is a community-developed branch of the MySQL database, the impetus being the community maintenance of its free status under GPL, as opposed to any uncertainty of MySQL license status under its current ownership by Oracle.'))
