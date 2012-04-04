@@ -203,7 +203,6 @@ def update_php(php_version=''):
   print(green('>>>> Add php tap for homebrew'))
   homebrew_add_tap('josegonzalez/homebrew-php')
 
-  # TODO: test if /usr/bin/php-apple exists first before doing this...
   print(green('>>>> Backup your original version of PHP, in the case you ever want to revert to a vanilla state. Note: You may need to repeat this step anytime you use combo updater to install OS X updates'))
   with settings(warn_only=True):
     if run("test -f /usr/bin/php-apple").failed:
