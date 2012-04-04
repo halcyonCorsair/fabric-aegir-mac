@@ -62,7 +62,8 @@ def install_homebrew():
 
 def homebrew_add_tap(tap=''):
   print(yellow('>>>> Setup homebrew tap for %s' % tap))
-  run('brew tap %s' % tap)
+  with settings(warn_only=True):
+    run('brew tap %s' % tap)
 
 def update_hosts(domain='', ip='127.0.0.1'):
   hosts = '/etc/hosts'
