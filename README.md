@@ -24,7 +24,7 @@ Command examples:
       #           \
       #            this is the host you wish to SSH into for install
 
-      fab -H localhost install:aegir_version='6.x-1.6'
+      fab -H localhost install:aegir_version='6.x-1.7'
       fab -H localhost install:hostname='myaegir.ld'
-      fab -H localhost install:aegir_version='6.x-1.6',hostname='myaegir.ld'
+      fab -H localhost install:aegir_version='6.x-1.7',hostname='myaegir.ld'
 </pre>
