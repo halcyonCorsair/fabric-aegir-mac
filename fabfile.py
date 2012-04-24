@@ -330,6 +330,10 @@ def install_aegir(aegir_version=''):
   print(green('>>>> Install Hostmaster!'))
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx --web_group=_www" % aegir_version)
 
+  print(green('>>>> Grab additional module/s for awesomeness!'))
+  #run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_remote_import.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_remote_import" % (aegir_version, ))
+  run("git clone --branch 6.x-1.x https://github.com/omega8cc/remote_import.git /Users/%s/.drush/provision/remote_import" % username)
+
   print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
   with settings(warn_only=True):
     run('mkdir -p /Users/%s/Sites' % username)
