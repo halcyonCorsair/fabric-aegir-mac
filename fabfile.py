@@ -365,8 +365,8 @@ def install_aegir(aegir_version=''):
     if (confirm('Shall we?', default=False)):
       print(green('>>>> Download aegir_backup_manager_ui'))
       if (confirm('Do you want aegir_backup_manager_ui added?', default=False)):
-        run("git clone --branch 6.x-1.x http://git.drupal.org/sandbox/d1b1/1140744.git /var/aegir/hostmaster-%s/sites/%s/modules/aegir_backup_manager_ui" % (aegir_version, env.hostname))
-        run("git clone --branch 6.x-1.x http://git.drupal.org/sandbox/d1b1/1140744.git /Users/%s/.drush/provision/aegir_backup_manager_ui" % username)
+        run("git clone http://git.drupal.org/sandbox/d1b1/1140744.git /var/aegir/hostmaster-%s/sites/%s/modules/aegir_backup_manager_ui" % (aegir_version, env.hostname))
+        run("git clone http://git.drupal.org/sandbox/d1b1/1140744.git /Users/%s/.drush/provision/aegir_backup_manager_ui" % username)
       print(green('>>>> Download hosting_backup_gc'))
       if (confirm('Do you want hosting_backup_gc added?', default=False)):
         run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_backup_gc.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_backup_gc" % (aegir_version, env.hostname))
