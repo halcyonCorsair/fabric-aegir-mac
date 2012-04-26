@@ -14,10 +14,10 @@ def install(aegir_version='', hostname=''):
   env.hostname = hostname
 
   check_requirements()
+  #NOTE: uncomment check_testing() and comment out setup_apps() to skip mariadb nginx and php, or the reverse to install for real
+  #check_testing()
+  setup_apps()
   set_hostname()
-  install_mariadb()
-  install_nginx()
-  update_php()
   install_drush()
   install_aegir()
 
@@ -43,6 +43,35 @@ def check_homebrew():
 
   if (not confirm('Is homebrew installed?', default=False)):
     install_homebrew()
+
+def check_testing():
+print(green('>>> Installable components; MariaDB'))
+
+  if (not confirm('Are you testing aegir parts?', default=False)):
+    setup_apps()
+
+def setup_apps():
+  check_mariadb()
+  check_nginx()
+  check_php()
+
+def check_mariadb():
+  print(green('>>> Installable components; MariaDB'))
+
+  if (not confirm('Is mariadb already installed?', default=False)):
+    install_mariadb()
+
+def check_nginx():
+  print(green('>>> Installable components; nginx'))
+
+  if (not confirm('Is nginx already installed?', default=False)):
+    install_nginx()
+
+def check_php():
+  print(green('>>> Installable components; php'))
+
+  if (not confirm('Is php already installed?', default=False)):
+    update_php()
 
 def install_homebrew():
   print(green('>>> Install Homebrew'))
@@ -329,6 +358,32 @@ def install_aegir(aegir_version=''):
 
   print(green('>>>> Install Hostmaster!'))
   run("drush hostmaster-install --aegir_root='/var/aegir' --root='/var/aegir/hostmaster-%s' --http_service_type=nginx --web_group=_www" % aegir_version)
+
+  print(red('^^  Now copy the URL above as you will need it shortly, then lets install some ^^'))
+  if (confirm('Copied it?', default=False)):
+    print(green('>>>> Lets grab additional module/s for awesomeness! (you will still need to enable these within your hostmaster site)'))
+    if (confirm('Shall we?', default=False)):
+      print(green('>>>> Download aegir_backup_manager_ui'))
+      if (confirm('Do you want aegir_backup_manager_ui added?', default=False)):
+        run("git clone http://git.drupal.org/sandbox/d1b1/1140744.git /var/aegir/hostmaster-%s/sites/%s/modules/aegir_backup_manager_ui" % (aegir_version, env.hostname))
+        run("git clone http://git.drupal.org/sandbox/d1b1/1140744.git /Users/%s/.drush/provision/aegir_backup_manager_ui" % username)
+      print(green('>>>> Download hosting_backup_gc'))
+      if (confirm('Do you want hosting_backup_gc added?', default=False)):
+        run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_backup_gc.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_backup_gc" % (aegir_version, env.hostname))
+      print(green('>>>> Download hosting_backup_queue'))
+      if (confirm('Do you want hosting_backup_queue added?', default=False)):
+        run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_backup_queue.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_backup_queue" % (aegir_version, env.hostname))
+      print(green('>>>> Download hosting_platform_pathauto'))
+      if (confirm('Do you want hosting_platform_pathauto added?', default=False)):
+        run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_platform_pathauto.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_platform_pathauto" % (aegir_version, env.hostname))
+      print(green('>>>> Download hosting_queue_runner'))
+      if (confirm('Do you want hosting_queue_runner added?', default=False)):
+        run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_queue_runner.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_queue_runner" % (aegir_version, env.hostname))
+        #TODO: create plist to actually run hosting_queue_runner
+      print(green('>>>> Download hosting_remote_import and remote_import'))
+      if (confirm('Do you want remote_import added?', default=False)):
+        run("git clone --branch 6.x-1.x http://git.drupal.org/project/hosting_remote_import.git /var/aegir/hostmaster-%s/sites/%s/modules/hosting_remote_import" % (aegir_version, env.hostname))
+        run("git clone --branch 6.x-1.x https://github.com/omega8cc/remote_import.git /Users/%s/.drush/provision/remote_import" % username)
 
   print(green('>>>> Remove the default platforms dir and create a symlink for so you can put your Platforms in ~/Sites/ directory'))
   with settings(warn_only=True):
