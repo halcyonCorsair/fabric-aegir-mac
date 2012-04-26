@@ -9,14 +9,13 @@ time = time.strftime('%Y%m%d-%H%M')
 # NOTE: fabric bug: osx uses -E instead of -r, this means sed(), comment(), and uncomment() won't work properly
 # TODO: perl inline replacement: perl -p -i.bak -e "s#a#b#" filename
 
-def install(aegir_version='', hostname=''):
+def install(aegir_version='', hostname='', apps=True):
   env.arguments = "%s, hostname = '%s'" % (aegir_version, hostname)
   env.hostname = hostname
 
   check_requirements()
-  #NOTE: uncomment check_testing() and comment out setup_apps() to skip mariadb nginx and php, or the reverse to install for real
-  #check_testing()
-  setup_apps()
+  if (apps == True):
+    setup_apps()
   set_hostname()
   install_drush()
   install_aegir()
@@ -43,12 +42,6 @@ def check_homebrew():
 
   if (not confirm('Is homebrew installed?', default=False)):
     install_homebrew()
-
-def check_testing():
-print(green('>>> Installable components; MariaDB'))
-
-  if (not confirm('Are you testing aegir parts?', default=False)):
-    setup_apps()
 
 def setup_apps():
   check_mariadb()

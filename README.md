@@ -28,3 +28,12 @@ Command examples:
       fab -H localhost install:hostname='myaegir.ld'
       fab -H localhost install:aegir_version='6.x-1.7',hostname='myaegir.ld'
 </pre>
+
+Optional install task arguments:
+  aegir_version:
+    What version of Aegir to install, eg. '6.x-1.7'
+  hostname:
+    Hostname for Aegir to be installed as
+  apps:
+    Default: True
+    If test to False, don't check/install mariadb, php, nginx
