@@ -30,6 +30,7 @@ Command examples:
 </pre>
 
 Optional install task arguments:
+<pre>
   aegir_version:
     What version of Aegir to install, eg. '6.x-1.7'
   hostname:
@@ -37,3 +38,4 @@ Optional install task arguments:
   apps:
     Default: True
     If test to False, don't check/install mariadb, php, nginx
+</pre>
